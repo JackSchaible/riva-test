@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t contactmanager -f server/Dockerfile server
+          docker build -t ${{ secrets.ECR_REPO }} -f server/Dockerfile server
           docker tag contactmanager:latest ${{ secrets.ECR_REPO }}:latest
 
       - name: Push Docker image
