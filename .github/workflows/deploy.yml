@@ -23,14 +23,13 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} |
           docker login --username AWS --password-stdin ${{ secrets.ECR_REPO }}
 
       - name: Build Docker image
         run: |
-          docker build -t contactmanager .
+          docker build -t contactmanager -f server/Dockerfile server
           docker tag contactmanager:latest ${{ secrets.ECR_REPO }}:latest
 
       - name: Push Docker image
