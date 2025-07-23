@@ -13,6 +13,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: 🧪 Test Suite
+    permissions:
+      contents: read
+      issues: read
+      checks: write
+      pull-requests: write
 
     steps:
       - name: 📥 Checkout code
