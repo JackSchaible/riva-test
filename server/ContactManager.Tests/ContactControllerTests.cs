@@ -158,7 +158,7 @@ public class ContactControllerTests
     }
 
     [Test]
-    public async Task SearchContacts_WithNullQuery_ReturnsOkWithAllContacts()
+    public async Task SearchContacts_WithNullQuery_ReturnsError()
     {
         List<Contact> contacts = BogusContacts.GetContacts();
         _contactServiceMock.Setup(s => s.SearchAsync("")).ReturnsAsync(contacts);
@@ -167,16 +167,39 @@ public class ContactControllerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
-            OkObjectResult? okResult = result.Result as OkObjectResult;
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+            BadRequestObjectResult? badRequestResult = result.Result as BadRequestObjectResult;
 
-            ApiResponse<List<ContactResponse>>? response = okResult?.Value as ApiResponse<List<ContactResponse>>;
+            ApiResponse<object>? response = badRequestResult?.Value as ApiResponse<object>;
             Assert.That(response, Is.Not.Null);
 
             if (response == null) return;
 
-            Assert.That(response.Success, Is.True);
-            Assert.That(response.Data, Has.Count.EqualTo(contacts.Count));
+            Assert.That(response.Success, Is.False);
+            Assert.That(response.Errors, Contains.Item("Search query is required"));
+        }
+    }
+    
+    [Test]
+    public async Task SearchContacts_With2CharacterQuery_ReturnsError()
+    {
+        List<Contact> contacts = BogusContacts.GetContacts();
+        _contactServiceMock.Setup(s => s.SearchAsync("ab")).ReturnsAsync(contacts);
+
+        ActionResult<ApiResponse<List<ContactResponse>>> result = await _controller.SearchContacts();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Result, Is.TypeOf<BadRequestObjectResult>());
+            BadRequestObjectResult? badRequestResult = result.Result as BadRequestObjectResult;
+
+            ApiResponse<object>? response = badRequestResult?.Value as ApiResponse<object>;
+            Assert.That(response, Is.Not.Null);
+
+            if (response == null) return;
+
+            Assert.That(response.Success, Is.False);
+            Assert.That(response.Errors, Contains.Item("Search query is required"));
         }
     }
 
@@ -198,7 +221,7 @@ public class ContactControllerTests
             if (response == null) return;
 
             Assert.That(response.Success, Is.False);
-            Assert.That(response.Errors, Contains.Item("Search query must not exceed 100 characters"));
+            Assert.That(response.Errors, Contains.Item("Search query must be between 3 and 100 characters"));
         }
     }
 
@@ -665,7 +688,7 @@ public class ContactControllerTests
 
     #endregion
 
-    #region Integration and Edge Case Tests
+    #region Edge Case Tests
 
     [Test]
     public async Task CreateContact_WithMaxLengthValues_ReturnsCreatedResult()

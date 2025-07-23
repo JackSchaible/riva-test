@@ -4,7 +4,6 @@ using System.Data;
 using Extensions;
 using Models.Data;
 using Moq;
-using Moq.Dapper;
 using Services;
 using Services.DbConnectionFactory;
 
@@ -109,12 +108,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQuery(contacts);
 
         List<Contact> result = await _contactService.SearchAsync(null!);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(contacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -124,12 +123,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQuery(contacts);
 
         List<Contact> result = await _contactService.SearchAsync("");
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(contacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -139,12 +138,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQuery(contacts);
 
         List<Contact> result = await _contactService.SearchAsync("   ");
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(contacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -161,12 +160,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQueryWithParams(expectedContacts);
 
         List<Contact> result = await _contactService.SearchAsync(firstName);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(expectedContacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -189,12 +188,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQueryWithParams(expectedContacts);
 
         List<Contact> result = await _contactService.SearchAsync($"{firstTerm} {secondTerm}");
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(expectedContacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -217,12 +216,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQueryWithParams(expectedContacts);
 
         List<Contact> result = await _contactService.SearchAsync($"     {firstTerm}  {secondTerm}   ");
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(expectedContacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -239,12 +238,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQueryWithParams(expectedContacts);
 
         List<Contact> result = await _contactService.SearchAsync(email);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Has.Count.EqualTo(expectedContacts.Count));
-        });
+        }
     }
 
     [Test]
@@ -253,12 +252,12 @@ public class ContactServiceTests
         _dbMock.SetupContactQueryWithParams([]);
 
         List<Contact> result = await _contactService.SearchAsync("nonexistent");
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.Empty);
-        });
+        }
     }
 
     [Test]
@@ -289,8 +288,8 @@ public class ContactServiceTests
         _dbMock.SetupCreateContactId(expectedId);
 
         Contact result = await _contactService.CreateAsync(newContact);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Id, Is.EqualTo(expectedId));
@@ -298,7 +297,7 @@ public class ContactServiceTests
             Assert.That(result.LastName, Is.EqualTo(newContact.LastName));
             Assert.That(result.Email, Is.EqualTo(newContact.Email));
             Assert.That(result.Phone, Is.EqualTo(newContact.Phone));
-        });
+        }
     }
 
     [Test]
@@ -315,8 +314,8 @@ public class ContactServiceTests
         _dbMock.SetupCreateContactId(expectedId);
 
         Contact result = await _contactService.CreateAsync(newContact);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Id, Is.EqualTo(expectedId));
@@ -324,7 +323,7 @@ public class ContactServiceTests
             Assert.That(result.LastName, Is.EqualTo(""));
             Assert.That(result.Email, Is.EqualTo(""));
             Assert.That(result.Phone, Is.EqualTo(""));
-        });
+        }
     }
 
     [Test]
@@ -341,12 +340,12 @@ public class ContactServiceTests
         _dbMock.SetupCreateContactId(expectedId);
 
         Contact result = await _contactService.CreateAsync(newContact);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Id, Is.EqualTo(expectedId));
-        });
+        }
     }
 
     [Test]
@@ -387,8 +386,8 @@ public class ContactServiceTests
         _dbMock.SetupContactQuerySingle(existingContact);
 
         Contact? result = await _contactService.UpdateAsync(contactId, updatedContact);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
             if (result == null) return;
@@ -398,7 +397,7 @@ public class ContactServiceTests
             Assert.That(result.LastName, Is.EqualTo(updatedContact.LastName));
             Assert.That(result.Email, Is.EqualTo(updatedContact.Email));
             Assert.That(result.Phone, Is.EqualTo(updatedContact.Phone));
-        });
+        }
     }
 
     [Test]
@@ -481,8 +480,8 @@ public class ContactServiceTests
         _dbMock.SetupContactQuerySingle(existingContact);
 
         Contact? result = await _contactService.UpdateAsync(contactId, updatedContact);
-
-        Assert.Multiple(() =>
+        
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.Not.Null);
 
@@ -493,7 +492,7 @@ public class ContactServiceTests
             Assert.That(result.LastName, Is.EqualTo(""));
             Assert.That(result.Email, Is.EqualTo(""));
             Assert.That(result.Phone, Is.EqualTo(""));
-        });
+        }
     }
 
     [Test]

@@ -4,4 +4,53 @@
 	
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=30704f31_002D79b9_002D4a65_002D9091_002Ddd61095b90ef/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetAll_ShouldReturnAllContacts" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Project Location="C:\Users\jacks\dev\riva-test\server\ContactManager.Tests" Presentation="&amp;lt;ContactManager.Tests&amp;gt;" /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=322cc9a7_002De9ec_002D478f_002Da48a_002D5ebce09964fa/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="DeleteContact_WithValidId_ShouldDeleteContactAndReturnSuccess" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ContactControllerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ContactServiceTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=803aaa88_002D0ecb_002D48ed_002Dab1c_002Db0c3c990dc17/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ping_ShouldReturnPong" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a0869957_002Dfb88_002D4e07_002D9042_002Da7955d551996/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b81ad8d0_002D3d69_002D450c_002D9a90_002D097a1a74a76c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ContactServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.Ping_ShouldReturnPong&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.GetAllContacts_ShouldReturnSuccessResponse&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.SearchContacts_WithValidQuery_ShouldReturnMatchingContacts&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.SearchContacts_WithEmptyQuery_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.SearchContacts_WithShortQuery_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithValidData_ShouldCreateContactAndReturnCreated&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithInvalidEmail_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f709941e_002Dc84b_002D4881_002D8b2f_002D10717f5840cc/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateContact_WithInvalidEmail_ShouldReturnBadRequest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithInvalidEmail_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.GetContact_WithValidId_ShouldReturnContact&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.GetContact_WithInvalidId_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.GetContact_WithNonExistentId_ShouldReturnNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.UpdateContact_WithValidData_ShouldUpdateContactAndReturnSuccess&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.UpdateContact_WithInvalidId_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.UpdateContact_WithNonExistentId_ShouldReturnNotFound&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.UpdateContact_WithInvalidData_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.DeleteContact_WithValidId_ShouldDeleteContactAndReturnSuccess&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=ff3a4f7a_002Dc617_002D4022_002D90dc_002Da0a9c464e3e0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests.CreateContact_WithMissingRequiredFields_ShouldReturnBadRequest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

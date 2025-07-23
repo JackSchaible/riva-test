@@ -21,8 +21,6 @@ BEGIN
         LastName NVARCHAR(50) NOT NULL,
         Email NVARCHAR(255) NOT NULL,
         Phone NVARCHAR(20) NOT NULL,
-        CreatedAt DATETIME2 DEFAULT GETUTCDATE(),
-        UpdatedAt DATETIME2 DEFAULT GETUTCDATE()
     );
 END
 GO

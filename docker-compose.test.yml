@@ -1,0 +1,46 @@
+services:
+  test-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-test
+    environment:
+      SA_PASSWORD: "TestPassword123!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
+    ports:
+      - "1434:1433"
+    volumes:
+      - ./db/setup.sql:/setup.sql
+    networks:
+      - test-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 10s bash -c '</dev/tcp/localhost/1433' || exit 1",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  test-db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      test-db:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Creating test database...' &&
+        /opt/mssql-tools18/bin/sqlcmd -S test-db -U sa -P TestPassword123! -C -Q 'CREATE DATABASE ContactManager' &&
+        echo 'Running setup script...' &&
+        /opt/mssql-tools18/bin/sqlcmd -S test-db -U sa -P TestPassword123! -C -d ContactManager -i /setup.sql &&
+        echo 'Database initialization complete!'
+      "
+    volumes:
+      - ./db/setup.sql:/setup.sql
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

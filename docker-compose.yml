@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "${SQL_SERVER_PASSWORD}"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./db/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - riva-network
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
+    entrypoint: >
+      bash -c "
+        sleep 20 &&
+        /opt/mssql-tools/bin/sqlcmd -S db -U sa -P ${SQL_SERVER_PASSWORD} -i /setup.sql
+      "
+    volumes:
+      - ./db/setup.sql:/setup.sql
+    networks:
+      - riva-network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: ./Dockerfile
+    container_name: contactmanager
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__DefaultConnection=Server=db;Database=ContactManager;User=sa;Password=${SQL_SERVER_PASSWORD};TrustServerCertificate=True;
+    ports:
+      - "7095:80"
+    depends_on:
+      - db-init
+    networks:
+      - riva-network
+
+volumes:
+  sql_data:
+
+networks:
+  riva-network:
+    driver: bridge

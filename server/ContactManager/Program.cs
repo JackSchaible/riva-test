@@ -1,5 +1,7 @@
 using ContactManager.Services;
 using ContactManager.Services.DbConnectionFactory;
+using ContactManager.Models.Data.Responses;
+using Microsoft.AspNetCore.Mvc;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +9,20 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IContactService, ContactService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            List<string> errors = context.ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors.Select(e => e.ErrorMessage))
+                .ToList();
+
+            ApiResponse<object> apiResponse = ApiResponse<object>.ValidationErrorResult(errors);
+            return new BadRequestObjectResult(apiResponse);
+        };
+    });
 
 if (builder.Environment.IsProduction())
 {
@@ -31,9 +46,11 @@ app.UseCors(options =>
 });
 
 app.UseHsts();
-app.UseHttpsRedirection();
 
 app.UseRouting();
 app.MapControllers();
 
 app.Run();
+
+// Make the implicit Program class public for integration testing
+public partial class Program { }
