@@ -32,7 +32,7 @@ jobs:
       - name: 🐳 Start test database
         run: |
           echo "🚀 Starting test database container..."
-          docker-compose -f docker-compose.test.yml up -d test-db
+          docker compose -f docker-compose.test.yml up -d test-db
 
       - name: ⏳ Wait for database
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: 📊 Initialize test database
         run: |
           echo "📊 Setting up test database schema and data..."
-          docker-compose -f docker-compose.test.yml up test-db-init
+          docker compose -f docker-compose.test.yml up test-db-init
 
           # Verify database initialization
           echo "🔍 Verifying database setup..."
@@ -111,7 +111,7 @@ jobs:
         if: always()
         run: |
           echo "🧹 Cleaning up test containers..."
-          docker-compose -f docker-compose.test.yml down -v
+          docker compose -f docker-compose.test.yml down -v
 
   build-and-deploy:
     runs-on: ubuntu-latest
