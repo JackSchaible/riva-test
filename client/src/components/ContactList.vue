@@ -1,17 +1,17 @@
 <template>
-  <v-container fluid class="pa-6">
+  <v-container fluid class="pa-6 pa-sm-4 pa-xs-3">
     <!-- Header -->
-    <v-row class="mb-6">
+    <v-row class="mb-6 mb-sm-4">
       <v-col>
-        <h1 class="text-h3 font-weight-light">
-          <v-icon icon="mdi-account-group" class="mr-3"></v-icon>
+        <h1 class="text-h3 text-sm-h4 text-xs-h5 font-weight-light">
+          <v-icon icon="mdi-account-group" class="mr-3 mr-sm-2"></v-icon>
           Contacts
         </h1>
       </v-col>
     </v-row>
 
     <!-- Search Bar -->
-    <v-row class="mb-4">
+    <v-row class="mb-4 mb-sm-3">
       <v-col cols="12">
         <v-text-field
           v-model="searchQuery"
@@ -28,12 +28,13 @@
               : ''
           "
           persistent-hint
+          class="search-field"
         ></v-text-field>
       </v-col>
     </v-row>
 
     <!-- Add Contact Button -->
-    <v-row class="mb-4">
+    <v-row class="mb-4 mb-sm-3">
       <v-col>
         <v-btn
           @click="showCreateForm = true"
@@ -42,6 +43,7 @@
           prepend-icon="mdi-plus"
           elevation="2"
           class="add-contact-btn"
+          block
         >
           Add Contact
         </v-btn>
@@ -124,9 +126,14 @@
     </v-row>
 
     <!-- Create/Edit Form Dialog -->
-    <v-dialog v-model="dialogVisible" max-width="600">
+    <v-dialog 
+      v-model="dialogVisible" 
+      max-width="600" 
+      :fullscreen="$vuetify.display.xs"
+      :transition="$vuetify.display.xs ? 'dialog-bottom-transition' : 'dialog-transition'"
+    >
       <v-card>
-        <v-card-title class="text-h5">
+        <v-card-title class="text-h5 pa-4 pa-sm-6">
           <v-icon
             :icon="editingContact ? 'mdi-account-edit' : 'mdi-account-plus'"
             class="mr-2"
@@ -135,9 +142,9 @@
         </v-card-title>
 
         <v-form @submit.prevent="saveContact" ref="form" v-model="formValid">
-          <v-card-text>
+          <v-card-text class="pa-4 pa-sm-6">
             <v-row>
-              <v-col cols="12" md="6">
+              <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.firstName"
                   label="First Name"
@@ -146,7 +153,7 @@
                   prepend-icon="mdi-account"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" md="6">
+              <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.lastName"
                   label="Last Name"
@@ -178,13 +185,14 @@
             </v-row>
           </v-card-text>
 
-          <v-card-actions>
+          <v-card-actions class="pa-4 pa-sm-6">
             <v-spacer></v-spacer>
             <v-btn
               @click="cancelForm"
               color="grey"
               variant="text"
               prepend-icon="mdi-close"
+              class="mr-2"
             >
               Cancel
             </v-btn>
@@ -204,14 +212,19 @@
     </v-dialog>
 
     <!-- Delete Confirmation Dialog -->
-    <v-dialog v-model="deleteDialogVisible" max-width="500">
+    <v-dialog 
+      v-model="deleteDialogVisible" 
+      max-width="500"
+      :fullscreen="$vuetify.display.xs"
+      :transition="$vuetify.display.xs ? 'dialog-bottom-transition' : 'dialog-transition'"
+    >
       <v-card>
-        <v-card-title class="text-h5 text-error">
+        <v-card-title class="text-h5 text-error pa-4 pa-sm-6">
           <v-icon icon="mdi-delete-alert" class="mr-2"></v-icon>
           Delete Contact
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="pa-4 pa-sm-6">
           <p class="text-body-1">
             Are you sure you want to delete
             <strong
@@ -222,9 +235,9 @@
           <p class="text-body-2 text-grey">This action cannot be undone.</p>
         </v-card-text>
 
-        <v-card-actions>
+        <v-card-actions class="pa-4 pa-sm-6">
           <v-spacer></v-spacer>
-          <v-btn @click="contactToDelete = null" color="grey" variant="text">
+          <v-btn @click="contactToDelete = null" color="grey" variant="text" class="mr-2">
             Cancel
           </v-btn>
           <v-btn
@@ -496,5 +509,96 @@ h6 {
 .v-text-field input,
 .v-text-field textarea {
   cursor: text !important;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .v-container {
+    padding: 16px !important;
+  }
+  
+  .search-field {
+    margin-bottom: 8px !important;
+  }
+  
+  .add-contact-btn {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  /* Responsive typography */
+  .text-h3 {
+    font-size: 1.75rem !important;
+  }
+  
+  .text-h5 {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Adjust spacing for mobile */
+  .mb-6 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 0.75rem !important;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .v-container {
+    padding: 12px !important;
+  }
+  
+  .text-h3 {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-h5 {
+    font-size: 1.125rem !important;
+  }
+  
+  /* Make buttons more touch-friendly */
+  .v-btn {
+    min-height: 44px !important;
+  }
+  
+  /* Adjust dialog padding for very small screens */
+  .v-dialog .v-card-title,
+  .v-dialog .v-card-text,
+  .v-dialog .v-card-actions {
+    padding: 16px !important;
+  }
+}
+
+/* Tablet styles */
+@media (max-width: 960px) and (min-width: 769px) {
+  .v-container {
+    padding: 24px !important;
+  }
+  
+  .text-h3 {
+    font-size: 2rem !important;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .v-container {
+    padding: 8px !important;
+  }
+  
+  .mb-6 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .mb-4 {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .text-h3 {
+    font-size: 1.5rem !important;
+  }
 }
 </style>

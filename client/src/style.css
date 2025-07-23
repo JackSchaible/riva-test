@@ -28,11 +28,26 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+/* Mobile-first responsive typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8em;
+  }
 }
 
 button {
@@ -63,6 +78,30 @@ button:focus-visible {
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mobile responsive adjustments for app container */
+@media (max-width: 768px) {
+  #app {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #app {
+    padding: 0.5rem;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Styles for touch devices */
+  button, .v-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 @media (prefers-color-scheme: light) {
