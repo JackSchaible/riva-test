@@ -22,7 +22,7 @@ public class ValidationTests
         };
 
         (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
-        
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(isValid, Is.True);
@@ -42,7 +42,7 @@ public class ValidationTests
         };
 
         (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
-        
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(isValid, Is.False);
@@ -62,7 +62,7 @@ public class ValidationTests
         };
 
         (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
-        
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(isValid, Is.False);
@@ -542,7 +542,7 @@ public class ValidationTests
         };
 
         (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
-        
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(isValid, Is.True);

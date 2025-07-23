@@ -22,7 +22,7 @@ public class ContactControllerIntegrationTests : IClassFixture<WebApplicationFac
             {
                 config.AddInMemoryCollection([
                     new KeyValuePair<string, string?>("ConnectionStrings:DefaultConnection",
-                        "Server=localhost,1434;Database=ContactManager;User=sa;Password=TestPassword123!;TrustServerCertificate=True;"),
+                        GetDatabaseConnectionString()),
                     new KeyValuePair<string, string?>("AllowedOrigins:0", "http://localhost:5173"),
                     new KeyValuePair<string, string?>("AllowedOrigins:1", "http://localhost:5174")
                 ]);
@@ -38,13 +38,36 @@ public class ContactControllerIntegrationTests : IClassFixture<WebApplicationFac
 
     public async Task InitializeAsync()
     {
-        await DockerTestHelper.StartTestDatabaseAsync();
+        // Only start Docker containers if not running in CI
+        // CI environment already has the database running
+        if (!IsRunningInCI())
+        {
+            await DockerTestHelper.StartTestDatabaseAsync();
+        }
     }
 
     public async Task DisposeAsync()
     {
-        await DockerTestHelper.StopTestDatabaseAsync();
+        // Only stop Docker containers if not running in CI
+        if (!IsRunningInCI())
+        {
+            await DockerTestHelper.StopTestDatabaseAsync();
+        }
         _client.Dispose();
+    }
+
+    private static bool IsRunningInCI()
+    {
+        // Check for common CI environment variables
+        return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")) ||
+               !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    }
+
+    private static string GetDatabaseConnectionString()
+    {
+        // Both CI and local use the same port mapping from docker-compose.test.yml
+        // The difference is that CI skips Docker container management
+        return "Server=localhost,1434;Database=ContactManager;User=sa;Password=TestPassword123!;TrustServerCertificate=True;";
     }
 
     [Fact]
