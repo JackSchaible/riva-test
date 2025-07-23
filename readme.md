@@ -1,6 +1,12 @@
 # Contact Manager
 
-A full-stack contact management application built with Vue.js and ASP.NET Core, featuring a modern Material Design interface for managing personal contacts.
+A full-stack contact management application built with Vue.js and ASP.NET Core, featuring a modern Material Design interface for managing personal contacts. Deployed on AWS with a comprehensive CI/CD pipeline utilizing ECS/Fargate, Amplify, and a full suite of cloud services.
+
+## 🚀 Live Demo
+
+**Production Application**: [https://riva.jackschaible.ca](https://riva.jackschaible.ca)
+
+Experience the fully deployed application running on AWS infrastructure with automatic CI/CD.
 
 ## Features
 
@@ -12,6 +18,9 @@ A full-stack contact management application built with Vue.js and ASP.NET Core, 
 - **Modern UI**: Dark-themed contact cards with intuitive icon-based actions
 - **CORS Configuration**: Properly configured Cross-Origin Resource Sharing for secure client-server communication
 - **Cloud Deployment**: Automated CI/CD pipeline with frontend deployed to AWS Amplify and backend to AWS ECS/Fargate
+- **Docker Support**: Backend containerized with Docker Compose for easy local development
+- **Integration Testing**: Comprehensive test suite with Docker-based test database
+- **AWS Infrastructure**: Full-stack deployment on AWS using ECR, ECS, VPC, ALB, Route 53, and more
 
 ## Prerequisites
 
@@ -20,7 +29,8 @@ Before running this application, ensure you have the following installed:
 - **Node.js** (v18 or later) - [Download here](https://nodejs.org/)
 - **pnpm** (recommended) or npm for package management
 - **.NET CLI** (v9.0 or later) - [Download here](https://dotnet.microsoft.com/download)
-- **SQL Server** or **SQL Server Express** (for database)
+- **Docker** (optional, for containerized development) - [Download here](https://www.docker.com/get-started)
+- **SQL Server** or **SQL Server Express** (for manual setup, not needed with Docker)
 
 ## Project Structure
 
@@ -39,20 +49,49 @@ riva-test/
 │   │   ├── Models/         # Data models
 │   │   ├── Services/       # Business logic
 │   │   └── ...
-│   └── ContactManager.Tests/  # Unit tests
+│   ├── ContactManager.Tests/          # Unit tests
+│   └── ContactManager.IntegrationTests/  # Integration tests
+├── db/                     # Database setup scripts
+├── docker-compose.yml      # Production Docker Compose
+├── docker-compose.test.yml # Test environment Docker Compose
 └── README.md
 ```
 
 ## Setup Instructions
 
-### 1. Clone the Repository
+Choose one of the following setup methods:
+
+### Option 1: Docker Compose (Recommended for Backend)
+
+The fastest way to get the backend running with a database:
+
+```bash
+# Clone and navigate to project
+git clone <repository-url>
+cd riva-test
+
+# Start backend + SQL Server with Docker Compose
+docker compose -f docker-compose.test.yml up
+
+# In another terminal, start the frontend
+cd client
+pnpm install && pnpm dev
+```
+
+- **Backend API**: Available at `http://localhost:80`
+- **Frontend**: Available at `http://localhost:5173`
+- **SQL Server**: Runs in container with automatic schema setup
+
+### Option 2: Manual Development Setup
+
+#### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd riva-test
 ```
 
-### 2. Frontend Setup (Vue.js)
+#### 2. Frontend Setup (Vue.js)
 
 Start with the client setup since the backend needs to know the client URL for CORS configuration.
 
@@ -74,7 +113,7 @@ Update the API URL in `src/config.ts` if needed:
 
 ```typescript
 export const config = {
-  apiUrl: "https://localhost:7154/api/contacts",
+  apiUrl: "https://localhost:7154/api/contact",
 };
 ```
 
@@ -88,7 +127,7 @@ npm run dev
 
 The frontend will be available at `http://localhost:5173`. **Note the port number** - you'll need it for the backend CORS configuration.
 
-### 3. Backend Setup (ASP.NET Core)
+#### 3. Backend Setup (ASP.NET Core)
 
 Navigate to the server directory and restore dependencies:
 
@@ -133,25 +172,25 @@ dotnet run
 
 The API will be available at `https://localhost:7154` (or the port shown in the console).
 
-### 4. Database Setup
+#### 4. Database Setup
 
 The application uses Dapper with SQL Server. Run the provided SQL setup script to create the database and tables:
 
-#### Option 1: Using SQL Server Management Studio (SSMS)
+##### Option 1: Using SQL Server Management Studio (SSMS)
 
 1. Open SQL Server Management Studio
 2. Connect to your SQL Server instance
 3. Open the file `server/setup.sql`
 4. Execute the script
 
-#### Option 2: Using sqlcmd command line
+##### Option 2: Using sqlcmd command line
 
 ```bash
 cd server
 sqlcmd -S "(localdb)\mssqllocaldb" -i setup.sql
 ```
 
-#### Option 3: Using Azure Data Studio or similar tools
+##### Option 3: Using Azure Data Studio, SSMS, or similar tools
 
 1. Open your preferred SQL client
 2. Connect to your SQL Server instance
@@ -203,7 +242,10 @@ The search functionality includes the following features:
 
 ```bash
 cd server
-dotnet test
+dotnet test  # Runs unit tests
+
+# Run integration tests (requires Docker)
+dotnet test ContactManager.IntegrationTests
 ```
 
 ### Frontend Tests
@@ -215,6 +257,91 @@ pnpm test
 npm test
 ```
 
+## CI/CD & Cloud Architecture
+
+This project features a comprehensive CI/CD pipeline that automatically builds, tests, and deploys to AWS:
+
+### GitHub Actions Pipeline
+
+- **Triggered on**: Push to main branch, pull requests
+- **Build & Test**: Runs unit and integration tests with Docker
+- **Deploy**: Automatic deployment to AWS ECS/Fargate and Amplify
+
+### AWS Infrastructure
+
+The entire stack runs on AWS with minimal hand-holding:
+
+#### **Amazon ECR**
+
+- Container registry for all .NET API Docker images
+
+#### **Amazon ECS (Fargate)**
+
+- Serverless container hosting for the API with auto-scaling and zero infrastructure management
+- awsvpc networking mode in a custom VPC with public & private subnets
+- NAT Gateway for outbound traffic and scoped-down Security Groups
+
+#### **Amazon EC2**
+
+- Windows/Linux instances running SQL Server, secured in private subnets
+
+#### **Amazon VPC**
+
+- Custom VPC with:
+  - Public subnets (for ALB)
+  - Private subnets (for ECS tasks & EC2 database)
+  - NAT Gateway for secure egress
+  - Security Groups + Network ACLs for micro-segmented access
+
+#### **Application Load Balancer (ALB)**
+
+- HTTPS front door with health checks, path-based routing to ECS
+- Sticky sessions support (if needed)
+
+#### **AWS Certificate Manager (ACM)**
+
+- Free TLS certificates for both ALB and CloudFront distribution
+
+#### **Amazon Route 53**
+
+- DNS hosting & alias records for custom domains (API + frontend)
+
+#### **AWS Amplify Console**
+
+- Git-driven CI/CD for the frontend (Vue.js)
+- CodeBuild & CodePipeline under the hood
+- S3 for build artifacts
+- CloudFront CDN with instant cache invalidation
+- Custom domain support, environment variables, branch previews
+
+#### **AWS IAM**
+
+- Least-privilege roles/policies for ECS tasks, CI/CD pipelines, and developers
+
+#### **AWS Secrets Manager**
+
+- Secure storage of database connection strings and other sensitive configurations
+
+#### **Amazon CloudWatch**
+
+- **Logs**: API output, container stdout/stderr, EC2 SQL Server logs
+- **Metrics**: CPU, memory, request counts, latency
+- **Alarms & Dashboards**: Automated alerts if things go sideways
+
+#### **AWS CloudTrail**
+
+- Audit trail of all management-plane actions for compliance
+
+### Deployment Flow
+
+1. **Code Push** → GitHub triggers workflow
+2. **Build** → Docker image built and pushed to ECR
+3. **Test** → Integration tests run with Docker Compose
+4. **Deploy Backend** → ECS service updated with new image
+5. **Deploy Frontend** → Amplify builds and deploys Vue.js app
+6. **Health Checks** → ALB verifies service health
+7. **DNS** → Route 53 routes traffic to new deployment
+
 ## Development
 
 ### Backend Development
@@ -222,9 +349,11 @@ npm test
 The backend uses:
 
 - **ASP.NET Core 9.0** - Web API framework
-- **Entity Framework Core** - ORM for database operations
+- **Dapper** - Micro ORM for database operations
 - **SQL Server** - Database
 - **xUnit** - Testing framework
+- **Docker** - Containerization for deployment and testing
+- **GitHub Actions** - CI/CD pipeline
 
 ### Frontend Development
 
@@ -235,14 +364,17 @@ The frontend uses:
 - **Vuetify 3** - Material Design component library
 - **Vite** - Build tool and development server
 - **Axios** - HTTP client for API calls
+- **AWS Amplify** - Deployment and hosting
 
 ## API Endpoints
 
-- `GET /api/contacts` - List all contacts
-- `GET /api/contacts/search?query={query}` - Search contacts
-- `POST /api/contacts` - Create a new contact
-- `PUT /api/contacts/{id}` - Update an existing contact
-- `DELETE /api/contacts/{id}` - Delete a contact
+- `GET /api/contact` - List all contacts
+- `GET /api/contact/search?query={query}` - Search contacts
+- `GET /api/contact/{id}` - Get a specific contact
+- `POST /api/contact` - Create a new contact
+- `PUT /api/contact/{id}` - Update an existing contact
+- `DELETE /api/contact/{id}` - Delete a contact
+- `GET /api/contact/ping` - Health check endpoint
 
 ## Contributing
 
