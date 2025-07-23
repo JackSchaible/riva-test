@@ -26,7 +26,7 @@ builder.Services.AddControllers()
 
 if (builder.Environment.IsProduction())
 {
-    builder.WebHost.UseUrls("https://0.0.0.0:80");
+    builder.WebHost.UseUrls("http://0.0.0.0:80");
 }
 
 WebApplication app = builder.Build();
