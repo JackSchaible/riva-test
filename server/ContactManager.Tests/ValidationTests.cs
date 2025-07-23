@@ -338,29 +338,37 @@ public class ValidationTests
     }
 
     [Test]
-    public void SearchContactRequest_WithNullQuery_PassesValidation()
+    public void SearchContactRequest_WithNullQuery_FailsValidation()
     {
         SearchContactRequest request = new()
         {
             Query = null
         };
 
-        (bool isValid, List<string>? _) = ValidationHelper.ValidateModel(request);
+        (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
 
-        Assert.That(isValid, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(isValid, Is.False);
+            Assert.That(errors, Contains.Item("Search query is required"));
+        }
     }
 
     [Test]
-    public void SearchContactRequest_WithEmptyQuery_PassesValidation()
+    public void SearchContactRequest_WithEmptyQuery_FailsValidation()
     {
         SearchContactRequest request = new()
         {
             Query = ""
         };
 
-        (bool isValid, List<string>? _) = ValidationHelper.ValidateModel(request);
+        (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
 
-        Assert.That(isValid, Is.True);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(isValid, Is.False);
+            Assert.That(errors, Contains.Item("Search query is required"));
+        }
     }
 
     [Test]
@@ -376,7 +384,24 @@ public class ValidationTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(isValid, Is.False);
-            Assert.That(errors, Contains.Item("Search query must not exceed 100 characters"));
+            Assert.That(errors, Contains.Item("Search query must be between 3 and 100 characters"));
+        }
+    }
+
+    [Test]
+    public void SearchContactRequest_WithTooShortQuery_FailsValidation()
+    {
+        SearchContactRequest request = new()
+        {
+            Query = "ab"
+        };
+
+        (bool isValid, List<string>? errors) = ValidationHelper.ValidateModel(request);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(isValid, Is.False);
+            Assert.That(errors, Contains.Item("Search query must be between 3 and 100 characters"));
         }
     }
 

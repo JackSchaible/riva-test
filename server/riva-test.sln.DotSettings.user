@@ -10,6 +10,7 @@
     &lt;TestId&gt;xUnit::2702F3F6-597C-4015-8EFC-5107125B1524::net9.0::ContactManager.IntegrationTests.ContactControllerIntegrationTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ContactControllerTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ContactServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::0EF9985A-64BB-4115-8251-E2C1879E76B5::net9.0::ContactManager.Tests.ValidationTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=803aaa88_002D0ecb_002D48ed_002Dab1c_002Db0c3c990dc17/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Ping_ShouldReturnPong" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
