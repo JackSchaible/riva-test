@@ -6,24 +6,43 @@ public static class DockerTestHelper
 {
     public static async Task StartTestDatabaseAsync()
     {
-        await RunDockerCommandAsync("docker-compose -f docker-compose.test.yml up -d test-db");
+        await RunDockerCommandAsync("docker compose -f docker-compose.test.yml up -d test-db");
 
         await WaitForDatabaseAsync();
 
-        await RunDockerCommandAsync("docker-compose -f docker-compose.test.yml up test-db-init");
+        await RunDockerCommandAsync("docker compose -f docker-compose.test.yml up test-db-init");
     }
 
     public static async Task StopTestDatabaseAsync()
     {
-        await RunDockerCommandAsync("docker-compose -f docker-compose.test.yml down -v");
+        await RunDockerCommandAsync("docker compose -f docker-compose.test.yml down -v");
     }
 
     private static async Task RunDockerCommandAsync(string command)
     {
+        // For docker compose commands, we need to split properly
+        // "docker compose -f docker-compose.test.yml up -d test-db"
+        // becomes: executable="docker", arguments="compose -f docker-compose.test.yml up -d test-db"
+
+        string executable;
+        string arguments;
+
+        if (command.StartsWith("docker compose"))
+        {
+            executable = "docker";
+            arguments = command.Substring("docker ".Length); // Remove "docker " prefix
+        }
+        else
+        {
+            var parts = command.Split(' ', 2);
+            executable = parts[0];
+            arguments = parts.Length > 1 ? parts[1] : "";
+        }
+
         ProcessStartInfo processInfo = new()
         {
-            FileName = "cmd.exe",
-            Arguments = $"/c {command}",
+            FileName = executable,
+            Arguments = arguments,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
