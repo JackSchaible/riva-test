@@ -57,6 +57,11 @@ cd client
 pnpm test
 pnpm lint
 pnpm build
+
+# End-to-end (Playwright): real browser, real API, real PostgreSQL.
+# Needs PostgreSQL running (docker compose up -d --wait). Playwright starts the API and Vite itself.
+pnpm exec playwright install chromium   # first time only
+pnpm test:e2e
 ```
 
 The backend tests (123) run the real API in memory (`WebApplicationFactory`) against a real PostgreSQL container. The container is shared across tests, and bookings are truncated before each test while the seeded rooms are kept. The tests cover:
@@ -74,7 +79,9 @@ The frontend tests (26, Vitest and Vue Test Utils) stub `fetch` and cover:
 - **The form ([BookingForm.spec.ts](client/src/components/BookingForm.spec.ts)):** the request it sends, 00:00 meaning end of day, showing 400 errors, clearing a conflict on retry, and network failures.
 - **The API client and UTC helpers.**
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests and the client lint, tests, and build. It does not deploy anything.
+The end-to-end tests (8, Playwright, in [client/e2e](client/e2e)) drive Chromium against the whole stack. Playwright starts its own API and Vite on ports 5159 and 5174, so they can run alongside `dev.sh`. The API uses a separate `room_booking_e2e` database on the same PostgreSQL, which is reset at the start of each run. Each test uses its own date, so the tests run in parallel. They cover listing rooms, booking and cancelling (checked again after a reload), an overlap rejected next to an allowed adjacent booking, the same time in different rooms, validation errors, booking until midnight, rebooking a cancelled slot, and two browser sessions booking overlapping slots at once, where exactly one sees the conflict.
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests, the client lint, tests, and build, and the end-to-end tests against a PostgreSQL service container. It does not deploy anything.
 
 ## API
 
@@ -164,7 +171,6 @@ Other choices:
 - Authentication, so only the person who booked (or an admin) can cancel
 - Rate limiting
 - Idempotency keys on `POST /api/bookings`, so client retries can't double-submit
-- Playwright end-to-end tests against the running app
 - Infrastructure as code for a deployed environment
 
 ## Project structure
@@ -186,4 +192,4 @@ docker-compose.yml              Local PostgreSQL
 
 - **AI:** This project was built with help from Claude Code (Anthropic's AI coding assistant). It was used to implement the code, tests, and documentation from a plan I wrote, and I reviewed the result.
 - **Backend libraries:** ASP.NET Core, [Dapper](https://github.com/DapperLib/Dapper), [Npgsql](https://www.npgsql.org/), [DbUp](https://dbup.readthedocs.io/), [xUnit](https://xunit.net/), [Testcontainers for .NET](https://dotnet.testcontainers.org/), and `Microsoft.AspNetCore.Mvc.Testing`.
-- **Frontend libraries:** [Vue 3](https://vuejs.org/), [Vuetify 3](https://vuetifyjs.com/), [Vite](https://vite.dev/), [Vitest](https://vitest.dev/), [Vue Test Utils](https://test-utils.vuejs.org/), ESLint with typescript-eslint, and Material Design Icons.
+- **Frontend libraries:** [Vue 3](https://vuejs.org/), [Vuetify 3](https://vuetifyjs.com/), [Vite](https://vite.dev/), [Vitest](https://vitest.dev/), [Vue Test Utils](https://test-utils.vuejs.org/), [Playwright](https://playwright.dev/), [node-postgres](https://node-postgres.com/) (end-to-end test reset), ESLint with typescript-eslint, and Material Design Icons.

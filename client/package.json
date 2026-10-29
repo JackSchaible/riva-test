@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
@@ -18,7 +19,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^24.0.15",
+    "@types/pg": "^8.23.1",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
     "@vitejs/plugin-vue": "^6.0.0",
@@ -29,6 +32,7 @@
     "eslint-plugin-vue": "^10.3.0",
     "globals": "^17.13.0",
     "jsdom": "^26.1.0",
+    "pg": "^8.23.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^7.0.4",

@@ -56,3 +56,61 @@ jobs:
 
       - name: 🏗️ Build
         run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    name: 🎭 End-to-end tests
+    defaults:
+      run:
+        working-directory: client
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: server/global.json
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🌐 Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Playwright starts the API and Vite itself (see playwright.config.ts).
+      - name: 🎭 Run end-to-end tests
+        run: pnpm test:e2e
+
+      - name: 📋 Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: client/playwright-report
+          retention-days: 7
