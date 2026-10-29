@@ -1,2 +1,5 @@
+.DS_Store
 .env
-.ds_store
+.idea/
+*.DotSettings.user
+senior-full-stack-dev-booking-assessment*.pdf

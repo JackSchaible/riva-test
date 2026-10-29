@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import ContactList from "./components/ContactList.vue";
+import RoomBookings from "./components/RoomBookings.vue";
 </script>
 
 <template>
-  <ContactList />
+  <v-app>
+    <v-main>
+      <RoomBookings />
+    </v-main>
+  </v-app>
 </template>
-
-<style scoped></style>
