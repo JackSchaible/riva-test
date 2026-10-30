@@ -11,7 +11,10 @@ TAG="$(git -C "$REPO_DIR" rev-parse HEAD)"
 API_BASE_URL="https://riva-api.jackschaible.ca/api"
 
 echo "==> Certificate and image repository"
-cdk deploy RivaDemoCertificate RivaDemoImages --require-approval never
+# Synthesize the same app as the stack step below (RivaDemo included, with a placeholder frontend), or CDK drops
+# the repository export RivaDemo uses and CloudFormation rejects the update.
+cdk deploy RivaDemoCertificate RivaDemoImages -c imageTag="$TAG" -c siteAssets="$INFRA_DIR/test/fixtures/site" \
+  --require-approval never
 
 echo "==> API image $TAG"
 REPOSITORY="$(stack_output RivaDemoImages RepositoryUri)"
