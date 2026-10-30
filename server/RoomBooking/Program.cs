@@ -25,12 +25,44 @@ builder.Services.AddControllers()
         };
     });
 
+builder.Services.AddHealthChecks();
+
+// CORS is off unless origins are configured: locally the frontend calls the API same-origin through Vite.
+// The deployed demo sets Cors:AllowedOrigins to the frontend's exact origin.
+string[] corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+if (corsOrigins.Length > 0)
+{
+    builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
+        .WithOrigins(corsOrigins)
+        .WithMethods("GET", "POST")
+        .WithHeaders("Content-Type")
+        .WithExposedHeaders("Location")
+        .SetPreflightMaxAge(TimeSpan.FromMinutes(10))));
+}
+
 WebApplication app = builder.Build();
 
-DatabaseMigrator.Migrate(
-    app.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."),
-    app.Logger);
+string connectionString = app.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+MigrationMode migrationMode = app.Configuration.GetValue("Database:Migrations", MigrationMode.OnStartup);
+
+if (migrationMode != MigrationMode.Skip)
+{
+    DatabaseMigrator.Migrate(connectionString, app.Logger);
+}
+
+if (migrationMode == MigrationMode.Only)
+{
+    // The deployment's one-off migration task: also provision the API's least-privilege role, then exit.
+    string? appRole = app.Configuration["Database:AppRole:Name"];
+    if (appRole is not null)
+    {
+        AppRoleProvisioner.Provision(connectionString, appRole,
+            app.Configuration["Database:AppRole:Password"] ?? "", app.Logger);
+    }
+
+    return;
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -44,6 +76,12 @@ app.UseExceptionHandler(errorApp => errorApp.Run(context =>
     return context.Response.WriteAsJsonAsync(ApiResponse<object>.ErrorResult("An unexpected error occurred"));
 }));
 
+if (corsOrigins.Length > 0)
+{
+    app.UseCors();
+}
+
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

@@ -33,6 +33,22 @@ public class ApiErrorHandlingTests(BookingApiFactory factory) : ApiTestBase(fact
     }
 
     [Fact]
+    public async Task UnexpectedException_KeepsCorsHeaders_WhenCorsIsConfigured()
+    {
+        // Without the header, a browser would hide the 500 envelope from the deployed frontend.
+        await using WebApplicationFactory<Program> failing =
+            HealthAndCorsTests.WithAllowedOrigin(WithBookingService(_ => new ThrowingBookingService()));
+        using HttpClient client = failing.CreateClient();
+
+        HttpResponseMessage response = await client.SendAsync(HealthAndCorsTests.WithOrigin(
+            HttpMethod.Get, $"/api/bookings?date={Day:yyyy-MM-dd}", HealthAndCorsTests.AllowedOrigin));
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HealthAndCorsTests.AllowedOrigin,
+            Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin")));
+    }
+
+    [Fact]
     public async Task PersistentDeadlock_Returns500AndWritesNothing()
     {
         await using WebApplicationFactory<Program> deadlocking = WithBookingService(services =>
