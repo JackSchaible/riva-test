@@ -143,9 +143,14 @@ export class DemoStack extends cdk.Stack {
       },
     };
 
+    // dotnet as PID 1 ignores the abort signal an unhandled exception raises, so the process hangs instead of
+    // exiting. An init process as PID 1 fixes that.
+    const initProcess = (id: string) => new ecs.LinuxParameters(this, id, { initProcessEnabled: true });
+
     const apiTask = new ecs.FargateTaskDefinition(this, "ApiTask", taskSize);
     apiTask.addContainer("api", {
       image,
+      linuxParameters: initProcess("ApiLinuxParameters"),
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "api", logGroup }),
       portMappings: [{ containerPort: API_PORT }],
       environment: {
@@ -161,6 +166,7 @@ export class DemoStack extends cdk.Stack {
     const migrateTask = new ecs.FargateTaskDefinition(this, "MigrateTask", taskSize);
     migrateTask.addContainer("migrate", {
       image,
+      linuxParameters: initProcess("MigrateLinuxParameters"),
       essential: true,
       logging: ecs.LogDrivers.awsLogs({ streamPrefix: "migrate", logGroup }),
       environment: {

@@ -41,7 +41,9 @@ public static partial class AppRoleProvisioner
                 END IF;
             END
             $$;
-            ALTER ROLE {roleName} WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT PASSWORD {passwordLiteral};
+            -- No SUPERUSER attribute (even NOSUPERUSER): only a true superuser may set it, and the RDS master isn't one.
+            -- New roles are never superusers anyway.
+            ALTER ROLE {roleName} WITH LOGIN NOCREATEDB NOCREATEROLE NOINHERIT PASSWORD {passwordLiteral};
             GRANT CONNECT ON DATABASE "{database}" TO {roleName};
             GRANT USAGE ON SCHEMA public TO {roleName};
             REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {roleName};

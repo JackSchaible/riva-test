@@ -15,11 +15,15 @@ cdk deploy RivaDemoCertificate RivaDemoImages --require-approval never
 
 echo "==> API image $TAG"
 REPOSITORY="$(stack_output RivaDemoImages RepositoryUri)"
-if aws ecr describe-images --region "$REGION" --repository-name "${REPOSITORY#*/}" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+PUSHED_SIZE="$(aws ecr describe-images --region "$REGION" --repository-name "${REPOSITORY#*/}" --image-ids imageTag="$TAG" \
+  --query 'imageDetails[0].imageSizeInBytes' --output text 2>/dev/null || echo 0)"
+if (( PUSHED_SIZE > 10000000 )); then
   echo "Already pushed"
 else
   aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${REPOSITORY%%/*}"
-  docker build --pull --platform linux/arm64 -t "$REPOSITORY:$TAG" "$REPO_DIR/server"
+  # No attestations: they make the push an image index, which ECR rejects under an immutable tag (leaving the tag
+  # on the small attestation manifest instead of the image).
+  docker build --pull --platform linux/arm64 --provenance=false --sbom=false -t "$REPOSITORY:$TAG" "$REPO_DIR/server"
   docker push "$REPOSITORY:$TAG"
 fi
 

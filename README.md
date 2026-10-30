@@ -81,7 +81,7 @@ The frontend tests (26, Vitest and Vue Test Utils) stub `fetch` and cover:
 
 The end-to-end tests (8, Playwright, in [client/e2e](client/e2e)) drive Chromium against the whole stack. Playwright starts its own API and Vite on ports 5159 and 5174, so they can run alongside `dev.sh`. The API uses a separate `room_booking_e2e` database on the same PostgreSQL, which is reset at the start of each run. Each test uses its own date, so the tests run in parallel. They cover listing rooms, booking and cancelling (checked again after a reload), an overlap rejected next to an allowed adjacent booking, the same time in different rooms, validation errors, booking until midnight, rebooking a cancelled slot, and two browser sessions booking overlapping slots at once, where exactly one sees the conflict.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests, the client lint, tests, and build, and the end-to-end tests against a PostgreSQL service container. It does not deploy anything.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests, the client lint, tests, and build, and the end-to-end tests against a PostgreSQL service container. It also type-checks, tests, and synthesizes the V2 infrastructure (no AWS credentials needed). It does not deploy anything.
 
 ## API
 
@@ -173,6 +173,56 @@ Other choices:
 - Idempotency keys on `POST /api/bookings`, so client retries can't double-submit
 - Infrastructure as code for a deployed environment
 
+## V2 deployment: temporary AWS demo
+
+A public demo on AWS, for three days only. **Teardown deadline: 2026-11-02.** It is not a production service: anyone can create bookings, cancel any booking, and see the names entered. There is no authentication, no rate limiting beyond API Gateway's stage throttle, and no backups, so booking data is gone after teardown. Everything above (local setup, tests, CI) works without it.
+
+- Frontend: <https://riva-test.jackschaible.ca>
+- API: <https://riva-api.jackschaible.ca/api>
+
+```text
+Browser ─┬─> CloudFront ─> S3 (private, Origin Access Control)          frontend
+         └─> API Gateway REST API ─> VPC link ─> internal ALB ─> Fargate ─> RDS PostgreSQL
+```
+
+- **Infrastructure** is an AWS CDK app (TypeScript) in [infra/](infra), in `ca-central-1`, with three stacks: `RivaDemoCertificate` (the CloudFront certificate, in `us-east-1`), `RivaDemoImages` (ECR), and `RivaDemo` (everything else).
+- **Network:** no NAT Gateway. API tasks run in public subnets with a public IP so they can pull images and read secrets, but they only accept traffic from the ALB. The ALB is internal and only reachable through the API Gateway VPC link. RDS sits in isolated subnets and only accepts traffic from the tasks.
+- **CORS:** the API allows exactly the frontend's origin (`Cors:AllowedOrigins`). API Gateway adds the same header to the errors it produces itself. The frontend is built with `VITE_API_BASE_URL` set to the API domain.
+- **Migrations** run as a one-off ECS task (`Database:Migrations=Only`) using the RDS master credential. It applies the DbUp scripts, including `CREATE EXTENSION btree_gist`, which the RDS master user may run, and then creates the `room_booking_app` role. That role can read `rooms` and read, insert, and update `bookings`, and nothing else. The API task runs with `Database:Migrations=Skip` and only has that role's password. A PostgreSQL advisory lock around the whole run keeps overlapping runners from racing.
+- **Sizing:** one Fargate task (ARM64, 0.25 vCPU, 0.5 GB), health-checked on `/health`, with a deployment circuit breaker that rolls back a failed deploy. The database is a `db.t4g.micro` (PostgreSQL 17, single-AZ, 20 GB gp3). Logs are kept for a week, and two console-only alarms cover no healthy task and API 5xx errors.
+- **Cost:** about $5-6 for 72 hours at demo traffic (ca-central-1 list prices, checked 2026-10-30): RDS about $1.55, ALB about $2, Fargate about $0.80, public IPv4 about $0.36, and the rest well under $1. Left running, it costs about $1.70 per day, so tear it down on time.
+
+### Runbook
+
+Run these from the repo root with AWS credentials for account 657164771317. Each step needs Docker, Node, and pnpm, and the deploy needs a clean `server/` and `client/`, because images are tagged with the commit SHA.
+
+```bash
+(cd infra && pnpm install)
+
+# Deploy or update (about 30-40 minutes the first time): certificate and ECR, API image, frontend build, stack, migrations
+./infra/scripts/deploy.sh
+
+# Smoke test: site, API, CORS (allowed and rejected), booking, overlap 409, cancel, /health not public
+./infra/scripts/smoke.sh
+
+# Re-run migrations only
+./infra/scripts/migrate.sh
+
+# Cost check: month-to-date spend for the demo's resources (tagged project=riva-room-booking-demo; activate the
+# tag as a cost allocation tag in Billing to see it), or the account's daily cost
+aws ce get-cost-and-usage --time-period Start=2026-10-30,End=2026-11-03 --granularity DAILY --metrics UnblendedCost
+
+# Teardown (about 20 minutes): destroys all three stacks, deletes CDK helper Lambda log groups, then lists leftovers
+./infra/scripts/teardown.sh
+
+# Check again later that nothing billable is left (every section should be empty)
+./infra/scripts/check-leftovers.sh
+```
+
+Teardown deletes the CloudFront distribution, the bucket and its contents, API Gateway, the VPC link, the ALB, ECS, RDS (no final snapshot, no retained backups), the secrets, the ECR repository and its images, the log groups, the DNS records, the certificates, and the VPC. The only things left in the account are CDK's shared bootstrap assets (a few MB in the bootstrap bucket).
+
+Infrastructure tests (no AWS credentials needed): `cd infra && pnpm test`.
+
 ## Project structure
 
 ```text
@@ -185,6 +235,8 @@ server/
     Database/                   DbUp migrator, SQL migrations, Development seeder
     Services/                   Dapper data access
   RoomBooking.IntegrationTests/ xUnit + Testcontainers integration tests
+  Dockerfile                    API image for the V2 demo
+infra/                          AWS CDK app and deploy/teardown scripts for the V2 demo
 docker-compose.yml              Local PostgreSQL
 ```
 

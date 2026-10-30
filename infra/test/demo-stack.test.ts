@@ -99,6 +99,14 @@ describe("tasks", () => {
     expect(migrate.Database__AppRole__Name).toBe("room_booking_app");
   });
 
+  it("runs an init process, so a crash exits instead of hanging", () => {
+    const definitions = Object.values(template.findResources("AWS::ECS::TaskDefinition"));
+    expect(definitions).toHaveLength(2);
+    for (const definition of definitions) {
+      expect(definition.Properties.ContainerDefinitions[0].LinuxParameters.InitProcessEnabled).toBe(true);
+    }
+  });
+
   it("rolls back a failed deployment", () => {
     template.hasResourceProperties("AWS::ECS::Service", {
       DeploymentConfiguration: { DeploymentCircuitBreaker: { Enable: true, Rollback: true } },

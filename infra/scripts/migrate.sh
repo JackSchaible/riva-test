@@ -8,7 +8,18 @@ TASK_ARN="$(aws ecs run-task --region "$REGION" --cluster "$CLUSTER" --launch-ty
   --network-configuration "awsvpcConfiguration={subnets=[$(stack_output RivaDemo TaskSubnetIds)],securityGroups=[$(stack_output RivaDemo TaskSecurityGroupId)],assignPublicIp=ENABLED}" \
   --query 'tasks[0].taskArn' --output text)"
 echo "Started $TASK_ARN"
-aws ecs wait tasks-stopped --region "$REGION" --cluster "$CLUSTER" --tasks "$TASK_ARN"
+# Usually done in about a minute; give up (and stop the task) after 10.
+for _ in $(seq 60); do
+  STATUS="$(aws ecs describe-tasks --region "$REGION" --cluster "$CLUSTER" --tasks "$TASK_ARN" \
+    --query 'tasks[0].lastStatus' --output text)"
+  [[ "$STATUS" == "STOPPED" ]] && break
+  sleep 10
+done
+if [[ "$STATUS" != "STOPPED" ]]; then
+  aws ecs stop-task --region "$REGION" --cluster "$CLUSTER" --task "$TASK_ARN" --reason "Timed out" >/dev/null
+  echo "Migration task did not finish in 10 minutes and was stopped." >&2
+  exit 1
+fi
 
 EXIT_CODE="$(aws ecs describe-tasks --region "$REGION" --cluster "$CLUSTER" --tasks "$TASK_ARN" \
   --query 'tasks[0].containers[0].exitCode' --output text)"

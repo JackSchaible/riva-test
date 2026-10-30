@@ -72,6 +72,26 @@ public class MigrationDeploymentTests(BookingApiFactory factory) : ApiTestBase(f
     }
 
     [Fact]
+    public async Task MigrateAndProvision_WorkAsANonSuperuserAdmin()
+    {
+        // Like the RDS master user: can create databases and roles, but is not a superuser.
+        string admin = NewRoleName();
+        await using (NpgsqlConnection superuser = new(Factory.ConnectionString))
+        {
+            await superuser.ExecuteAsync($"CREATE ROLE {admin} LOGIN CREATEDB CREATEROLE PASSWORD 'admin'");
+        }
+
+        string adminConnectionString = AsRole(NewDatabaseConnectionString(), admin, "admin");
+        DatabaseMigrator.Migrate(adminConnectionString, NullLogger.Instance);
+        string role = NewRoleName();
+        AppRoleProvisioner.Provision(adminConnectionString, role, "app", NullLogger.Instance);
+        AppRoleProvisioner.Provision(adminConnectionString, role, "app", NullLogger.Instance);
+
+        await using NpgsqlConnection app = new(AsRole(adminConnectionString, role, "app"));
+        Assert.Equal(3, await app.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM rooms"));
+    }
+
+    [Fact]
     public async Task AppRole_ProvisioningAgainRotatesThePassword()
     {
         string adminConnectionString = NewDatabaseConnectionString();
