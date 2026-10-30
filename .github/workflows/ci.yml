@@ -1,0 +1,199 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    name: 🧪 Server tests
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: server/global.json
+
+      # Testcontainers starts PostgreSQL using the runner's Docker daemon.
+      - name: 🔬 Run integration tests
+        run: dotnet test server/RoomBooking.sln --configuration Release --logger "console;verbosity=normal"
+
+  client:
+    runs-on: ubuntu-latest
+    name: 🎨 Client lint, tests, and build
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🧹 Lint
+        run: pnpm lint
+
+      - name: 🧪 Test
+        run: pnpm test
+
+      - name: 🏗️ Build
+        run: pnpm build
+
+  infra:
+    runs-on: ubuntu-latest
+    name: ☁️ Infrastructure tests and synth
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: infra/pnpm-lock.yaml
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔎 Type-check
+        run: pnpm build
+
+      - name: 🧪 Test
+        run: pnpm test
+
+      # No AWS credentials: synth must not need account lookups. The fixture stands in for the frontend build.
+      - name: 🏗️ Synth
+        run: pnpm exec cdk synth -c imageTag=ci -c siteAssets="$PWD/test/fixtures/site" -q
+
+  e2e:
+    runs-on: ubuntu-latest
+    name: 🎭 End-to-end tests
+    defaults:
+      run:
+        working-directory: client
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: server/global.json
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🌐 Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Playwright starts the API and Vite itself (see playwright.config.ts).
+      - name: 🎭 Run end-to-end tests
+        run: pnpm test:e2e
+
+      - name: 📋 Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: client/playwright-report
+          retention-days: 7
+
+  # Deploys the temporary V2 demo (see the README). Only for pushes to main, after every test job passes.
+  deploy:
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy demo
+    needs: [server, client, infra, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-demo
+      cancel-in-progress: false
+    permissions:
+      id-token: write # GitHub OIDC: no long-lived AWS keys
+      contents: read
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            infra/pnpm-lock.yaml
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::657164771317:role/riva-demo-github-deploy
+          aws-region: ca-central-1
+
+      - name: 📦 Install infrastructure dependencies
+        working-directory: infra
+        run: pnpm install --frozen-lockfile
+
+      # Pushes the API image tagged with the commit SHA, deploys the stacks (frontend upload and CloudFront
+      # invalidation included), and runs the migration task.
+      - name: 🚀 Deploy
+        run: ./infra/scripts/deploy.sh
+
+      - name: 🔎 Smoke test
+        run: ./infra/scripts/smoke.sh

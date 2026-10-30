@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 .npmrc
+# Playwright
+test-results
+playwright-report
+blob-report

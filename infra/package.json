@@ -1,0 +1,24 @@
+{
+  "name": "room-booking-infra",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AWS CDK app for the temporary V2 demo deployment",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "synth": "cdk synth",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.275.0",
+    "constructs": "^10.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.15",
+    "aws-cdk": "2.1147.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.23.0"
+}
