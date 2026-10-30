@@ -149,3 +149,51 @@ jobs:
           name: playwright-report
           path: client/playwright-report
           retention-days: 7
+
+  # Deploys the temporary V2 demo (see the README). Only for pushes to main, after every test job passes.
+  deploy:
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy demo
+    needs: [server, client, infra, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-demo
+      cancel-in-progress: false
+    permissions:
+      id-token: write # GitHub OIDC: no long-lived AWS keys
+      contents: read
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🛠️ Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            infra/pnpm-lock.yaml
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::657164771317:role/riva-demo-github-deploy
+          aws-region: ca-central-1
+
+      - name: 📦 Install infrastructure dependencies
+        working-directory: infra
+        run: pnpm install --frozen-lockfile
+
+      # Pushes the API image tagged with the commit SHA, deploys the stacks (frontend upload and CloudFront
+      # invalidation included), and runs the migration task.
+      - name: 🚀 Deploy
+        run: ./infra/scripts/deploy.sh
+
+      - name: 🔎 Smoke test
+        run: ./infra/scripts/smoke.sh

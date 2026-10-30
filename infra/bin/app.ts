@@ -3,6 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import { CertificateStack } from "../lib/certificate-stack";
 import { demoConfig } from "../lib/config";
 import { DemoStack } from "../lib/demo-stack";
+import { DeployRoleStack } from "../lib/deploy-role-stack";
 import { ImagesStack } from "../lib/images-stack";
 
 const app = new cdk.App();
@@ -16,6 +17,12 @@ const certificate = new CertificateStack(app, "RivaDemoCertificate", {
   config: demoConfig,
 });
 const images = new ImagesStack(app, "RivaDemoImages", { env });
+new DeployRoleStack(app, "RivaDemoDeployRole", {
+  env,
+  config: demoConfig,
+  githubRepository: "JackSchaible/riva-test",
+  branch: "main",
+});
 
 // The main stack needs an image to run, so it is only defined when one is given (scripts/deploy.sh passes it).
 const imageTag = app.node.tryGetContext("imageTag") as string | undefined;

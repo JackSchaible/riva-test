@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { CertificateStack } from "../lib/certificate-stack";
 import { demoConfig } from "../lib/config";
 import { DemoStack } from "../lib/demo-stack";
+import { DeployRoleStack } from "../lib/deploy-role-stack";
 import { ImagesStack } from "../lib/images-stack";
 
 let template: Template;
@@ -160,6 +161,33 @@ describe("frontend", () => {
     template.resourceCountIs("AWS::CloudFront::OriginAccessControl", 1);
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: Match.objectLike({ Aliases: ["riva-test.jackschaible.ca"] }),
+    });
+  });
+});
+
+describe("GitHub deploy role", () => {
+  it("can only be assumed by this repo's main branch through OIDC", () => {
+    const app = new cdk.App();
+    const stack = new DeployRoleStack(app, "DeployRole", {
+      env: { account: demoConfig.account, region: demoConfig.region },
+      config: demoConfig,
+      githubRepository: "JackSchaible/riva-test",
+      branch: "main",
+    });
+    Template.fromStack(stack).hasResourceProperties("AWS::IAM::Role", {
+      AssumeRolePolicyDocument: {
+        Statement: [
+          Match.objectLike({
+            Action: "sts:AssumeRoleWithWebIdentity",
+            Condition: {
+              StringEquals: {
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                "token.actions.githubusercontent.com:sub": "repo:JackSchaible/riva-test:ref:refs/heads/main",
+              },
+            },
+          }),
+        ],
+      },
     });
   });
 });

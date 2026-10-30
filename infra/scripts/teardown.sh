@@ -3,7 +3,7 @@
 source "$(dirname "$0")/lib.sh"
 
 echo "==> Destroying stacks (the main stack takes ~15-20 minutes, mostly CloudFront and RDS)"
-cdk destroy RivaDemo RivaDemoImages RivaDemoCertificate -c imageTag=teardown -c siteAssets="$INFRA_DIR/test/fixtures/site" --force
+cdk destroy RivaDemo RivaDemoImages RivaDemoCertificate RivaDemoDeployRole -c imageTag=teardown -c siteAssets="$INFRA_DIR/test/fixtures/site" --force
 
 echo "==> Deleting log groups of CDK's helper Lambdas (CloudFormation doesn't own them)"
 for region in "$REGION" us-east-1; do

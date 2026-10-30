@@ -81,7 +81,7 @@ The frontend tests (26, Vitest and Vue Test Utils) stub `fetch` and cover:
 
 The end-to-end tests (8, Playwright, in [client/e2e](client/e2e)) drive Chromium against the whole stack. Playwright starts its own API and Vite on ports 5159 and 5174, so they can run alongside `dev.sh`. The API uses a separate `room_booking_e2e` database on the same PostgreSQL, which is reset at the start of each run. Each test uses its own date, so the tests run in parallel. They cover listing rooms, booking and cancelling (checked again after a reload), an overlap rejected next to an allowed adjacent booking, the same time in different rooms, validation errors, booking until midnight, rebooking a cancelled slot, and two browser sessions booking overlapping slots at once, where exactly one sees the conflict.
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests, the client lint, tests, and build, and the end-to-end tests against a PostgreSQL service container. It also type-checks, tests, and synthesizes the V2 infrastructure (no AWS credentials needed). It does not deploy anything.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the backend tests, the client lint, tests, and build, and the end-to-end tests against a PostgreSQL service container. It also type-checks, tests, and synthesizes the V2 infrastructure (no AWS credentials needed). On a push to `main`, once all of those pass, it deploys the V2 demo (see below). Pull requests never deploy.
 
 ## API
 
@@ -194,7 +194,9 @@ Browser ─┬─> CloudFront ─> S3 (private, Origin Access Control)          
 
 ### Runbook
 
-Run these from the repo root with AWS credentials for account 657164771317. Each step needs Docker, Node, and pnpm, and the deploy needs a clean `server/` and `client/`, because images are tagged with the commit SHA.
+**CI deploy:** every push to `main` runs the `deploy` job after the server, client, infrastructure, and end-to-end jobs pass. It signs in with GitHub OIDC (no stored AWS keys) as `riva-demo-github-deploy`, a role from the `RivaDemoDeployRole` stack that only this repository's `main` branch can assume. Then it runs `deploy.sh` and `smoke.sh`. The role is created once by hand (`cd infra && pnpm exec cdk deploy RivaDemoDeployRole`), and CI never changes it. The CDK bootstrap roles it uses can change anything in the account, so treat push access to `main` as deploy access.
+
+To run the same steps by hand, run these from the repo root with AWS credentials for account 657164771317. Each step needs Docker, Node, and pnpm, and the deploy needs a clean `server/` and `client/`, because images are tagged with the commit SHA.
 
 ```bash
 (cd infra && pnpm install)
@@ -212,7 +214,7 @@ Run these from the repo root with AWS credentials for account 657164771317. Each
 # tag as a cost allocation tag in Billing to see it), or the account's daily cost
 aws ce get-cost-and-usage --time-period Start=2026-10-30,End=2026-11-03 --granularity DAILY --metrics UnblendedCost
 
-# Teardown (about 20 minutes): destroys all three stacks, deletes CDK helper Lambda log groups, then lists leftovers
+# Teardown (about 20 minutes): destroys all four stacks (including the CI deploy role), deletes CDK helper Lambda log groups, then lists leftovers
 ./infra/scripts/teardown.sh
 
 # Check again later that nothing billable is left (every section should be empty)
