@@ -8,13 +8,16 @@ import { DemoStack } from "../lib/demo-stack";
 import { DeployRoleStack } from "../lib/deploy-role-stack";
 import { ImagesStack } from "../lib/images-stack";
 
+// Any account works for templates; the real one only comes from AWS credentials.
+const account = "123456789012";
+
 let template: Template;
 
 beforeAll(() => {
   const app = new cdk.App();
-  const env = { account: demoConfig.account, region: demoConfig.region };
+  const env = { account, region: demoConfig.region };
   const certificate = new CertificateStack(app, "Certificate", {
-    env: { account: demoConfig.account, region: "us-east-1" },
+    env: { account, region: "us-east-1" },
     config: demoConfig,
   });
   const images = new ImagesStack(app, "Images", { env });
@@ -169,7 +172,7 @@ describe("GitHub deploy role", () => {
   it("can only be assumed by this repo's main branch through OIDC", () => {
     const app = new cdk.App();
     const stack = new DeployRoleStack(app, "DeployRole", {
-      env: { account: demoConfig.account, region: demoConfig.region },
+      env: { account, region: demoConfig.region },
       config: demoConfig,
       githubRepository: "JackSchaible/riva-test",
       branch: "main",
