@@ -91,6 +91,8 @@ jobs:
       # No AWS credentials: synth must not need account lookups. The fixture stands in for the frontend build.
       - name: 🏗️ Synth
         run: pnpm exec cdk synth -c imageTag=ci -c siteAssets="$PWD/test/fixtures/site" -q
+        env:
+          CDK_DEFAULT_ACCOUNT: "123456789012"
 
   e2e:
     runs-on: ubuntu-latest
@@ -183,7 +185,8 @@ jobs:
       - name: 🔐 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::657164771317:role/riva-demo-github-deploy
+          # The ARN (which includes the account ID) is a repository secret, so it stays out of the repo and logs.
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ca-central-1
 
       - name: 📦 Install infrastructure dependencies

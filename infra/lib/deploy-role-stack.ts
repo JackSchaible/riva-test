@@ -19,7 +19,7 @@ export interface DeployRoleStackProps extends cdk.StackProps {
 export class DeployRoleStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: DeployRoleStackProps) {
     super(scope, id, props);
-    const { account, region } = props.config;
+    const { account, region } = this;
 
     const provider = iam.OpenIdConnectProvider.fromOpenIdConnectProviderArn(
       this,
